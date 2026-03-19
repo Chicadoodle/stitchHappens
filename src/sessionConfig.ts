@@ -25,4 +25,20 @@ const sessionMiddleware = session({
   saveUninitialized: false, // Don't save empty sessions (no cookie until session is used)
 });
 
+import 'express-session';
+
+declare module 'express-session' {
+  export interface Session {
+    clearSession(): Promise<void>; // DO NOT MODIFY — provided by the starter
+
+    // Add your app's custom properties below
+    authenticatedUser: {
+      userId: string;
+      email: string;
+    };
+    isLoggedIn: boolean;
+    logInAttempts: number;
+  }
+}
+
 export { sessionMiddleware };
