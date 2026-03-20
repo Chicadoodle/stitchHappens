@@ -43,9 +43,9 @@ export class Pattern {
   @Column()
   yarnSize: number;
 
-  @Column
+  @Column()
   crochetOrKnit: string;
 
-  @Column
+  @Column()
   createdAt: Date;
 }
