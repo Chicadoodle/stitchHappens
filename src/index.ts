@@ -1,10 +1,10 @@
-import express, { Express } from 'express';
-import { Request, Response } from 'express';
-import './config.js'; // do not remove this line
-import { sessionMiddleware } from './sessionConfig.js';
-import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import 'dotenv/config';
+import express, { Express } from 'express';
+import session from 'express-session';
+import './config.js'; // do not remove this line
+import { getPatterns, uploadPattern } from './controllers/PatternController.js';
+import { sessionMiddleware } from './sessionConfig.js';
 
 const app: Express = express();
 const { PORT, COOKIE_SECRET } = process.env;
@@ -17,12 +17,12 @@ app.use(express.urlencoded({ extended: false })); // Setup urlencoded (HTML Form
 app.use(
   session({
     store: new PostgresStore({ createTableIfMissing: true }),
-    secret: COOKIE_SECRET,                // Signs the cookie so clients can't forge it
+    secret: COOKIE_SECRET, // Signs the cookie so clients can't forge it
     cookie: { maxAge: 8 * 60 * 60 * 1000 }, // 8-hour sessions
     name: 'session',
-    resave: false,                        // Don't re-save unchanged sessions
-    saveUninitialized: false,             // Only create sessions when we write to req.session
-  })
+    resave: false, // Don't re-save unchanged sessions
+    saveUninitialized: false, // Only create sessions when we write to req.session
+  }),
 );
 
 app.use(express.json());
@@ -31,19 +31,27 @@ app.use(express.json());
 // This allows the client to access any file inside the `public` directory
 // Only put file that you actually want to be publicly accessibly in the `public` folder
 app.use(express.static('public', { extensions: ['html'] }));
-app.post(/Users/createNewUser);
+app.post(/Users/NUaceeeerrstw);
 
 // -- Routes --------------------------------------------------
 
-  await req.session.clearSession();
+await req.session.clearSession();
 
-  req.session.authenticatedUser = { userId: user.userId, email: user.email };
-  req.session.isLoggedIn = true;
+req.session.authenticatedUser = { userId: user.userId, email: user.email };
+req.session.isLoggedIn = true;
 
-  res.sendStatus(200);
+res.sendStatus(200);
 
 // Register your routes below this line
 
 app.listen(process.env.PORT, () => {
   console.log(`Server listening on http://localhost:${process.env.PORT}`);
 });
+
+//routes Hanna added because i am confused where to put them:
+
+app.get('/patterns', getPatterns);
+app.post('/patterns', uploadPattern);
+
+app.get('/patterns', getPatterns);
+app.post('/patterns', uploadPattern);
