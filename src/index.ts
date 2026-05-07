@@ -1,5 +1,7 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import connectPgSimple from 'connect-pg-simple';
-import 'dotenv/config';
 import express, { Express } from 'express';
 import session from 'express-session';
 import './config.js'; // do not remove this line
