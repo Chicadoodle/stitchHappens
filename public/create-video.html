@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Upload Video</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="/components/navbar.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Upload a Video</h2>
+
+      <form id="form">
+        <input name="title" placeholder="Title" required />
+        <input name="videoUrl" placeholder="YouTube URL" required />
+        <select name="skillLevel">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="pro">Pro</option>
+        </select>
+        <input name="skiensNeeded" type="number" placeholder="Skeins Needed" />
+        <input name="yarnSize" type="number" placeholder="Yarn Size" />
+        <select name="crochetOrKnit">
+          <option value="crochet">Crochet</option>
+          <option value="knit">Knit</option>
+        </select>
+
+        <button>Submit</button>
+      </form>
+
+      <p id="msg"></p>
+    </div>
+
+    <script>
+      document.getElementById('form').onsubmit = async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+
+        const res = await fetch('/api/videos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        document.getElementById('msg').textContent =
+          res.status === 201 ? 'Video uploaded!' : 'Error uploading video.';
+      };
+    </script>
+  </body>
+</html>

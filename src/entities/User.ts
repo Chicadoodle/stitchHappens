@@ -1,47 +1,42 @@
-import {
-    Entity, PrimaryColumn, Column,
-    BeforeInsert,
-} from 'typeorm';
+import { BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
-import { FavListPattern } from './favlistPattern';
-import { FavListVideo } from './favListVideo';
+import { Pattern } from './Patterns.js';
+import { Video } from './Videos.js';
 
 @Entity()
-export class User{
-    @PrimaryColumn()
-    userId: string;
+export class User {
+  @PrimaryColumn()
+  userId: string;
 
-    @Column()
-        userName: string;
+  @BeforeInsert()
+  generatedId(): void {
+    this.userId = uuidv7();
+  }
 
-    @BeforeInsert()
-    generatedId(): void {
-        this.userId = uuidv7();
-    }
+  @Column()
+  userName: string;
 
-    @Column({ unique: true })
-    email: string;
+  @Column({ unique: true })
+  email: string;
 
-    @Column()
-    passwordHash: string;
+  @Column()
+  passwordHash: string;
 
-    @Column({ default: false })
-    verifiedEmail: boolean;
+  @CreateDateColumn()
+  joinDate: Date;
 
-    @Column({ default: false })
-    verifiedPhoneNum: boolean;
+  @OneToMany(() => Video, (video) => video.createdBy)
+  videos: Video[];
+  @OneToMany(() => Pattern, (pattern) => pattern.createdBy)
+  /*Property 'createdBy' does not exist on type 'CanvasPattern'.ts(2339)
+any */
+  patterns: Pattern[];
 
-    @Column()
-    joinDate: Date;
-
-    @ManytoOne(() => favListPattern, (favListPattern) => favListPattern.user)
-    @JoinColumn()
-    favListPattern: Relation<FavListPattern>;
-    favListPatternId: string;
-
-    @ManytoOne(() => favListVideo, (favListPattern) => favListPattern.user)
-    @JoinColumn()
-    favListVideo: Relation<FavListPattern>;
-    favListVideoId: string;
-
-    }
+  @Column('text', { array: true, default: [] })
+  /*Parsing error: ':' expected.eslint
+(property) ColumnCommonOptions.default?: any
+Default database value. Note that default value is not supported when column type is 'json' of mysql. */
+  favoriteVideoIds: string[];
+  @Column('text', { array: true, default: [] })
+  favoritePatternIds: string[];
+}

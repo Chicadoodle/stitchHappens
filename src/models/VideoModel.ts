@@ -1,4 +1,5 @@
 import { AppDataSource } from '../dataSource.js';
+import { User } from '../entities/User.js';
 import { Video } from '../entities/Videos.js';
 
 const videoRepository = AppDataSource.getRepository(Video);
@@ -7,26 +8,31 @@ export async function getAllVideos(): Promise<Video[]> {
   return videoRepository.find();
 }
 
-export async function addVideo(
-  title: string,
-  skillLevel: string,
-  skiensNeeded: number,
-  yarnSize: number,
-  crochetOrKnit: string,
-): Promise<Video> {
-  const newVideo = videoRepository.create({
-    //here at .create
-    /*No overload matches this call.
-  Overload 1 of 3, '(entityLikeArray: DeepPartial<Video>[]): Video[]', gave the following error.
-    Object literal may only specify known properties, and 'title' does not exist in type 'DeepPartial<Video>[]'.
-  Overload 2 of 3, '(entityLike: DeepPartial<Video>): Video', gave the following error.
-    Object literal may only specify known properties, and 'skillLevel' does not exist in type 'DeepPartial<Video>'.ts(2769)
-(method) Repository<Video>.create(): Video (+2 overloads)*/
-    title,
-    skillLevel,
-    skiensNeeded,
-    yarnSize,
-    crochetOrKnit,
+export async function addVideo(data: Record<string, unknown>, user: User): Promise<Video> {
+  const video = videoRepository.create({ ...data, createdBy: user });
+  return videoRepository.save(video);
+}
+
+export async function getVideoById(videoId: string): Promise<Video | null> {
+  return videoRepository.findOne({
+    where: { videoId },
+    relations: ['createdBy'],
   });
-  return videoRepository.save(newVideo);
+}
+
+export async function updateVideo(video: Video, updates: Partial<Video>): Promise<Video> {
+  Object.assign(video, updates);
+  return videoRepository.save(video);
+}
+
+export async function deleteVideo(video: Video): Promise<boolean> {
+  await videoRepository.remove(video);
+  return true;
+}
+
+export async function searchVideos(q: string): Promise<Video[]> {
+  return videoRepository
+    .createQueryBuilder('video')
+    .where('LOWER(video.title) LIKE LOWER(:q)', { q: `%${q}%` })
+    .getMany();
 }

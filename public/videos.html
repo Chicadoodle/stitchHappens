@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Videos</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="/components/navbar.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Video Tutorials</h2>
+
+      <div class="search-bar">
+        <input id="searchInput" placeholder="Search videos by title..." />
+        <button onclick="search()">Search</button>
+      </div>
+
+      <div id="grid" class="card-grid"></div>
+    </div>
+
+    <script>
+      async function load() {
+        const res = await fetch('/api/videos');
+        const videos = await res.json();
+        render(videos);
+      }
+
+      async function search() {
+        const q = document.getElementById('searchInput').value;
+        const res = await fetch('/api/videos/search?q=' + encodeURIComponent(q));
+        render(await res.json());
+      }
+
+      function render(videos) {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = videos
+          .map(
+            (v) => `
+      <div class="card">
+        <h3>${v.title}</h3>
+        <p><strong>Skill:</strong> ${v.skillLevel}</p>
+        <p><strong>Yarn Size:</strong> ${v.yarnSize}</p>
+        <p><strong>Skeins:</strong> ${v.skiensNeeded}</p>
+        <a href="${v.videoUrl}" target="_blank">Watch</a><br><br>
+        <button onclick="favorite('${v.videoId}')">Favorite</button>
+      </div>
+    `,
+          )
+          .join('');
+      }
+
+      async function favorite(id) {
+        await fetch('/api/favorites/videos/' + id, { method: 'POST' });
+        alert('Favorited!');
+      }
+
+      load();
+    </script>
+  </body>
+</html>

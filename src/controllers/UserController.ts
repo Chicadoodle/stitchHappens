@@ -1,60 +1,125 @@
-import { argon2 } from 'argon2';
+import argon2 from 'argon2';
 import { Request, Response } from 'express';
-import { addUser } from '../models/UserModel.js';
-import { parseDatabaseError } from '../utils/db-utils.js';
-import { CreateNewUser, GetUserByEmail } from '../validators/UserValidator.js';
+import {
+  addFavoritePattern,
+  addFavoriteVideo,
+  addUser,
+  getUserByEmail,
+  removeFavoritePattern,
+  removeFavoriteVideo,
+} from '../models/UserModel.js';
+import { LoginSchema, RegisterUserSchema } from '../validators/UserValidator.js';
 
-async function createNewUser(req: Request, res: Response): Promise<void> {
-  const result = CreateNewUser.safeParse(req.body);
-
-  if (!result.success) {
-    res.status(400).json(result.error.flatten());
+export async function registerUser(req: Request, res: Response): Promise<void> {
+  const parsed = RegisterUserSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json(parsed.error.format());
     return;
   }
 
-  const { email, password } = result.data;
+  const { email, password, userName } = parsed.data;
 
   try {
-    const passwordHash = await argon2.hash(password);
-    const newUser = await addUser(email, passwordHash);
-    console.log(newUser);
+    const hash = await argon2.hash(password);
+    await addUser(email, hash, userName);
     res.sendStatus(201);
-  } catch (err) {
-    console.error(err);
-    const databaseErrorMessage = parseDatabaseError(err);
-    res.status(500).json(databaseErrorMessage);
-
-    res.status(200).json({ user: createNewUser });
+  } catch {
+    res.status(500).json({ error: 'Database error' });
   }
 }
 
-async function logIn(req: Request, res: Response): Promise<void> {
-  const result = createNewUser.safeParse(req.body);
-  if (!result.success) {
-    res.status(400).json(result.error.flatten());
+export async function loginUser(req: Request, res: Response): Promise<void> {
+  const parsed = LoginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json(parsed.error.format());
     return;
   }
 
-  const { email, password } = result.data;
+  const { email, password } = parsed.data;
 
-  try {
-    const user = await GetUserByEmail(email);
-    if (!user) {
-      res.sendStatus(403);
-      return;
-    }
-
-    const { passwordHash } = user;
-    if (!(await argon2.verify(passwordHash, password))) {
-      res.sendStatus(403);
-      return;
-    }
-
-    res.sendStatus(200);
-  } catch (err) {
-    console.error(err);
-    res.sendStatus(500);
+  const user = await getUserByEmail(email);
+  if (!user) {
+    res.sendStatus(403);
+    return;
   }
+
+  const valid = await argon2.verify(user.passwordHash, password);
+  if (!valid) {
+    res.sendStatus(403);
+    return;
+  }
+
+  req.session.authenticatedUser = {
+    userId: user.userId,
+    email: user.email,
+    displayName: user.userName,
+  };
+  req.session.isLoggedIn = true;
+
+  res.sendStatus(200);
 }
 
-export { createNewUser, LogIn };
+export async function logoutUser(req: Request, res: Response): Promise<void> {
+  await req.session.clearSession();
+  res.sendStatus(204);
+}
+
+export async function getMe(req: Request, res: Response): Promise<void> {
+  if (!req.session.isLoggedIn) {
+    res.sendStatus(401);
+    return;
+  }
+  res.json(req.session.authenticatedUser);
+}
+
+export async function favoriteVideo(req: Request, res: Response): Promise<void> {
+  const userId = req.session.authenticatedUser?.userId;
+  if (!userId) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const videoId = req.params.videoId as string;
+  await addFavoriteVideo(userId, videoId);
+
+  res.sendStatus(200);
+}
+
+export async function unfavoriteVideo(req: Request, res: Response): Promise<void> {
+  const userId = req.session.authenticatedUser?.userId;
+  if (!userId) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const videoId = req.params.videoId as string;
+  await removeFavoriteVideo(userId, videoId);
+
+  res.sendStatus(200);
+}
+
+export async function favoritePattern(req: Request, res: Response): Promise<void> {
+  const userId = req.session.authenticatedUser?.userId;
+  if (!userId) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const patternId = req.params.patternId as string;
+  await addFavoritePattern(userId, patternId);
+
+  res.sendStatus(200);
+}
+
+export async function unfavoritePattern(req: Request, res: Response): Promise<void> {
+  const userId = req.session.authenticatedUser?.userId;
+  if (!userId) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const patternId = req.params.patternId as string;
+  await removeFavoritePattern(userId, patternId);
+
+  res.sendStatus(200);
+}

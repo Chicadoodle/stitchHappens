@@ -9,22 +9,21 @@ import {
 } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { User } from './User.js';
-
 @Entity()
-export class Pattern {
+export class Video {
   @PrimaryColumn()
-  patternId: string;
+  videoId: string;
 
   @BeforeInsert()
   generateId(): void {
-    this.patternId = uuidv7();
+    this.videoId = uuidv7();
   }
 
   @Column()
   title: string;
 
-  @Column({ type: 'text' })
-  instructions: string;
+  @Column()
+  videoUrl: string;
 
   @Column()
   skillLevel: string;
@@ -41,6 +40,6 @@ export class Pattern {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.patterns)
+  @ManyToOne(() => User, (user) => user.videos)
   createdBy: Relation<User>;
 }

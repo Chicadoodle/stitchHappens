@@ -40,7 +40,7 @@
 
   "editor.bracketPairColorization.enabled": true,
   "editor.suggestSelection": "recentlyUsed",
-  "diffEditor.ignoreTrimWhitespace": false,
+  "diffEditor.ignoreTrimWhitespace": true,
 
   "files.associations": {
     "*.css": "tailwindcss"

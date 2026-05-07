@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Register</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="/components/navbar.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Create an Account</h2>
+
+      <form id="regForm">
+        <input name="email" type="email" placeholder="Email" required />
+        <input name="userName" type="text" placeholder="Username" required />
+        <input name="password" type="password" placeholder="Password" required />
+        <button>Create Account</button>
+      </form>
+
+      <p id="msg"></p>
+    </div>
+
+    <script>
+      document.getElementById('regForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+
+        const res = await fetch('/api/users/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        document.getElementById('msg').textContent =
+          res.status === 201 ? 'Registered!' : 'Registration failed.';
+      };
+    </script>
+  </body>
+</html>

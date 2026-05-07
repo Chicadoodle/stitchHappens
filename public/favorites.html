@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+  <head>
+    <title>My Favorites</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="/components/navbar.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h2>My Favorites</h2>
+
+      <h3>Favorite Videos</h3>
+      <div id="videoGrid" class="card-grid"></div>
+
+      <h3 style="margin-top: 40px">Favorite Patterns</h3>
+      <div id="patternGrid" class="card-grid"></div>
+    </div>
+
+    <script>
+      async function loadFavorites() {
+        const meRes = await fetch('/api/users/me');
+        if (!meRes.ok) {
+          document.body.innerHTML =
+            "<h2 style='text-align:center'>Please log in to view favorites.</h2>";
+          return;
+        }
+
+        const me = await meRes.json();
+
+        const favVideos = me.favoriteVideoIds || [];
+        const favPatterns = me.favoritePatternIds || [];
+
+        loadVideos(favVideos);
+        loadPatterns(favPatterns);
+      }
+
+      async function loadVideos(ids) {
+        const grid = document.getElementById('videoGrid');
+
+        if (ids.length === 0) {
+          grid.innerHTML = '<p>You have no favorite videos yet.</p>';
+          return;
+        }
+
+        const cards = [];
+
+        for (const id of ids) {
+          const res = await fetch(`/api/videos/${id}`);
+          if (res.ok) {
+            const v = await res.json();
+            cards.push(`
+          <div class="card">
+            <h3>${v.title}</h3>
+            <p><strong>Skill:</strong> ${v.skillLevel}</p>
+            <p><strong>Yarn Size:</strong> ${v.yarnSize}</p>
+            <p><strong>Skeins:</strong> ${v.skiensNeeded}</p>
+            <a href="${v.videoUrl}" target="_blank">Watch</a><br><br>
+            <button onclick="removeVideo('${v.videoId}')">Remove Favorite</button>
+          </div>
+        `);
+          }
+        }
+
+        grid.innerHTML = cards.join('');
+      }
+
+      async function loadPatterns(ids) {
+        const grid = document.getElementById('patternGrid');
+
+        if (ids.length === 0) {
+          grid.innerHTML = '<p>You have no favorite patterns yet.</p>';
+          return;
+        }
+
+        const cards = [];
+
+        for (const id of ids) {
+          const res = await fetch(`/api/patterns/${id}`);
+          if (res.ok) {
+            const p = await res.json();
+            cards.push(`
+          <div class="card">
+            <h3>${p.title}</h3>
+            <p><strong>Skill:</strong> ${p.skillLevel}</p>
+            <p><strong>Yarn Size:</strong> ${p.yarnSize}</p>
+            <p><strong>Skeins:</strong> ${p.skiensNeeded}</p>
+            <pre>${p.instructions}</pre>
+            <button onclick="removePattern('${p.patternId}')">Remove Favorite</button>
+          </div>
+        `);
+          }
+        }
+
+        grid.innerHTML = cards.join('');
+      }
+
+      async function removeVideo(id) {
+        await fetch(`/api/favorites/videos/${id}`, { method: 'DELETE' });
+        loadFavorites();
+      }
+
+      async function removePattern(id) {
+        await fetch(`/api/favorites/patterns/${id}`, { method: 'DELETE' });
+        loadFavorites();
+      }
+
+      loadFavorites();
+    </script>
+  </body>
+</html>

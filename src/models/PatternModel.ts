@@ -1,5 +1,6 @@
 import { AppDataSource } from '../dataSource.js';
 import { Pattern } from '../entities/Patterns.js';
+import { User } from '../entities/User.js';
 
 const patternRepository = AppDataSource.getRepository(Pattern);
 
@@ -7,31 +8,31 @@ export async function getAllPatterns(): Promise<Pattern[]> {
   return patternRepository.find();
 }
 
-export async function addPattern(
-  title: string,
-  skillLevel: string,
-  skiensNeeded: number,
-  yarnSize: number,
-  originalName: string,
-  filename: string,
-  mimetype: string,
-  size: number,
-  path: string,
-  crochetOrKnit: string,
-  createdAt: Date,
-): Promise<Pattern> {
-  const newPattern = new Pattern();
-  newPattern.title = title;
-  newPattern.skillLevel = skillLevel;
-  newPattern.skiensNeeded = skiensNeeded;
-  newPattern.yarnSize = yarnSize;
-  newPattern.originalName = originalName;
-  newPattern.filename = filename;
-  newPattern.mimetype = mimetype;
-  newPattern.size = size;
-  newPattern.path = path;
-  newPattern.crochetOrKnit = crochetOrKnit;
-  newPattern.createdAt = createdAt;
+export async function addPattern(data: Record<string, unknown>, user: User): Promise<Pattern> {
+  const pattern = patternRepository.create({ ...data, createdBy: user });
+  return patternRepository.save(pattern);
+}
 
-  return patternRepository.save(newPattern);
+export async function getPatternById(patternId: string): Promise<Pattern | null> {
+  return patternRepository.findOne({
+    where: { patternId },
+    relations: ['createdBy'],
+  });
+}
+
+export async function updatePattern(pattern: Pattern, updates: Partial<Pattern>): Promise<Pattern> {
+  Object.assign(pattern, updates);
+  return patternRepository.save(pattern);
+}
+
+export async function deletePattern(pattern: Pattern): Promise<boolean> {
+  await patternRepository.remove(pattern);
+  return true;
+}
+
+export async function searchPatterns(q: string): Promise<Pattern[]> {
+  return patternRepository
+    .createQueryBuilder('pattern')
+    .where('LOWER(pattern.title) LIKE LOWER(:q)', { q: `%${q}%` })
+    .getMany();
 }

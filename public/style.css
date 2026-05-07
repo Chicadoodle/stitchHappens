@@ -1,0 +1,136 @@
+/* ======  FONT  ====== */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #fafafb;
+  color: #333;
+}
+
+/* ====== NAVBAR ====== */
+nav {
+  background: #ffffff;
+  padding: 14px 30px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+nav a {
+  text-decoration: none;
+  color: #222;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* ====== LAYOUT ====== */
+.container {
+  width: 90%;
+  max-width: 1100px;
+  margin: 40px auto;
+}
+
+/* ====== GRID CARDS ====== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 26px;
+  margin-top: 30px;
+}
+
+.card {
+  position: relative;
+  background: white;
+  border-radius: 14px;
+  height: 380px; /* uniform height */
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* ====== CARD TITLE ====== */
+.card h3 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #222;
+}
+
+/* ====== CARD CONTENT ====== */
+.card p,
+.card pre {
+  font-size: 14px;
+  margin: 3px 0;
+  color: #444;
+}
+
+.card pre {
+  white-space: pre-wrap;
+  max-height: 120px;
+  overflow: auto;
+}
+
+/* ====== HEART BUTTON ====== */
+.heart-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 26px;
+  transition: transform 0.15s ease;
+}
+
+.heart-btn:hover {
+  transform: scale(1.12);
+}
+
+/* Empty + filled heart colors */
+.heart-empty {
+  color: #bbb;
+}
+
+.heart-filled {
+  color: #ff4d6d;
+}
+
+/* ====== SEARCH ====== */
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+}
+
+button {
+  background: #333;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+}
