@@ -1,10 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import connectPgSimple from 'connect-pg-simple';
 import express, { Express } from 'express';
-import session from 'express-session';
 import './config.js'; // do not remove this line
+import { sessionMiddleware } from './sessionConfig.js';
 
 import {
   createPattern,
@@ -34,20 +33,9 @@ import {
 } from './controllers/VideoController.js';
 
 const app: Express = express();
-const { PORT, COOKIE_SECRET } = process.env;
+const { PORT } = process.env;
 
-const PostgresStore = connectPgSimple(session);
-
-app.use(
-  session({
-    store: new PostgresStore({ createTableIfMissing: true }),
-    secret: COOKIE_SECRET as string, // Signs the cookie so clients can't forge it
-    cookie: { maxAge: 8 * 60 * 60 * 1000 }, // 8-hour sessions
-    name: 'session',
-    resave: false, // Don't re-save unchanged sessions
-    saveUninitialized: false, // Only create sessions when we write to req.session
-  }),
-);
+app.use(sessionMiddleware);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
