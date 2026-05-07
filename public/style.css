@@ -146,3 +146,33 @@ button {
 .heart-filled {
   color: #ff4d6d;
 }
+
+.hero {
+  text-align: center;
+  margin-top: 120px;
+}
+
+.hero h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.hero p {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 40px;
+}
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.hero-buttons button {
+  padding: 14px 28px;
+  font-size: 18px;
+  border-radius: 10px;
+}
