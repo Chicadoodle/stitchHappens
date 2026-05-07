@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="style.css" />
     <script defer src="/components/navbar.js"></script>
   </head>
+
   <body>
     <div class="container">
       <h2>My Favorites</h2>
@@ -18,89 +19,89 @@
 
     <script>
       async function loadFavorites() {
-        const meRes = await fetch('/api/users/me');
-        if (!meRes.ok) {
+        const me = await fetch('/api/users/me')
+          .then((r) => r.json())
+          .catch(() => null);
+        if (!me) {
           document.body.innerHTML =
-            "<h2 style='text-align:center'>Please log in to view favorites.</h2>";
+            "<h2 style='text-align:center'>You must log in to view favorites.</h2>";
           return;
         }
 
-        const me = await meRes.json();
-
-        const favVideos = me.favoriteVideoIds || [];
-        const favPatterns = me.favoritePatternIds || [];
-
-        loadVideos(favVideos);
-        loadPatterns(favPatterns);
+        renderVideos(me.favoriteVideoIds);
+        renderPatterns(me.favoritePatternIds);
       }
 
-      async function loadVideos(ids) {
+      async function renderVideos(ids) {
         const grid = document.getElementById('videoGrid');
 
-        if (ids.length === 0) {
-          grid.innerHTML = '<p>You have no favorite videos yet.</p>';
+        if (!ids.length) {
+          grid.innerHTML = '<p>No favorite videos yet.</p>';
           return;
         }
 
         const cards = [];
-
         for (const id of ids) {
           const res = await fetch(`/api/videos/${id}`);
-          if (res.ok) {
-            const v = await res.json();
-            cards.push(`
-          <div class="card">
-            <h3>${v.title}</h3>
-            <p><strong>Skill:</strong> ${v.skillLevel}</p>
-            <p><strong>Yarn Size:</strong> ${v.yarnSize}</p>
-            <p><strong>Skeins:</strong> ${v.skiensNeeded}</p>
-            <a href="${v.videoUrl}" target="_blank">Watch</a><br><br>
-            <button onclick="removeVideo('${v.videoId}')">Remove Favorite</button>
-          </div>
-        `);
-          }
+          if (!res.ok) continue;
+          const v = await res.json();
+
+          cards.push(`
+        <div class="card">
+          <button class="heart-btn heart-filled"
+            onclick="toggleFavorite('videos', '${v.videoId}', this)">
+            ♥
+          </button>
+
+          <h3>${v.title}</h3>
+          <p><strong>Skill:</strong> ${v.skillLevel}</p>
+          <p><strong>Yarn Size:</strong> ${v.yarnSize}</p>
+          <p><strong>Skeins:</strong> ${v.skiensNeeded}</p>
+
+          <a href="${v.videoUrl}" target="_blank">Watch</a>
+        </div>
+      `);
         }
 
         grid.innerHTML = cards.join('');
       }
 
-      async function loadPatterns(ids) {
+      async function renderPatterns(ids) {
         const grid = document.getElementById('patternGrid');
 
-        if (ids.length === 0) {
-          grid.innerHTML = '<p>You have no favorite patterns yet.</p>';
+        if (!ids.length) {
+          grid.innerHTML = '<p>No favorite patterns yet.</p>';
           return;
         }
 
         const cards = [];
-
         for (const id of ids) {
           const res = await fetch(`/api/patterns/${id}`);
-          if (res.ok) {
-            const p = await res.json();
-            cards.push(`
-          <div class="card">
-            <h3>${p.title}</h3>
-            <p><strong>Skill:</strong> ${p.skillLevel}</p>
-            <p><strong>Yarn Size:</strong> ${p.yarnSize}</p>
-            <p><strong>Skeins:</strong> ${p.skiensNeeded}</p>
-            <pre>${p.instructions}</pre>
-            <button onclick="removePattern('${p.patternId}')">Remove Favorite</button>
-          </div>
-        `);
-          }
+          if (!res.ok) continue;
+          const p = await res.json();
+
+          cards.push(`
+        <div class="card">
+          <button class="heart-btn heart-filled"
+            onclick="toggleFavorite('patterns', '${p.patternId}', this)">
+            ♥
+          </button>
+
+          <h3>${p.title}</h3>
+          <p><strong>Skill:</strong> ${p.skillLevel}</p>
+          <p><strong>Yarn Size:</strong> ${p.yarnSize}</p>
+          <p><strong>Skeins:</strong> ${p.skiensNeeded}</p>
+
+          <pre>${p.instructions}</pre>
+        </div>
+      `);
         }
 
         grid.innerHTML = cards.join('');
       }
 
-      async function removeVideo(id) {
-        await fetch(`/api/favorites/videos/${id}`, { method: 'DELETE' });
-        loadFavorites();
-      }
-
-      async function removePattern(id) {
-        await fetch(`/api/favorites/patterns/${id}`, { method: 'DELETE' });
+      async function toggleFavorite(type, id, el) {
+        await fetch(`/api/favorites/${type}/${id}`, { method: 'DELETE' });
         loadFavorites();
       }
 

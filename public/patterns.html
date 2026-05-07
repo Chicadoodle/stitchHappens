@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="style.css" />
     <script defer src="/components/navbar.js"></script>
   </head>
+
   <body>
     <div class="container">
       <h2>Patterns</h2>
@@ -14,43 +15,121 @@
         <button onclick="search()">Search</button>
       </div>
 
+      <div class="filters">
+        <select id="skillFilter">
+          <option value="">Skill Level</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="pro">Pro</option>
+        </select>
+
+        <select id="yarnFilter">
+          <option value="">Yarn Size</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+
+        <select id="skeinsFilter">
+          <option value="">Skeins</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+
+        <button onclick="applyFilters()">Apply</button>
+      </div>
+
       <div id="grid" class="card-grid"></div>
     </div>
 
     <script>
+      let allPatterns = [];
+      let userFavorites = { patterns: [] };
+
+      async function loadFavorites() {
+        const me = await fetch('/api/users/me')
+          .then((r) => r.json())
+          .catch(() => null);
+        if (!me) return;
+        userFavorites.patterns = me.favoritePatternIds || [];
+      }
+
       async function load() {
+        await loadFavorites();
         const res = await fetch('/api/patterns');
-        const patterns = await res.json();
-        render(patterns);
+        allPatterns = await res.json();
+        render(allPatterns, userFavorites.patterns);
       }
 
-      async function search() {
-        const q = document.getElementById('searchInput').value;
-        const res = await fetch('/api/patterns/search?q=' + encodeURIComponent(q));
-        render(await res.json());
-      }
-
-      function render(patterns) {
+      function render(patterns, favorites) {
         const grid = document.getElementById('grid');
+
         grid.innerHTML = patterns
           .map(
             (p) => `
       <div class="card">
+        <button class="heart-btn ${favorites.includes(p.patternId) ? 'heart-filled' : 'heart-empty'}"
+          onclick="toggleFavorite('patterns', '${p.patternId}', this)">
+          ${favorites.includes(p.patternId) ? '♥' : '♡'}
+        </button>
+
         <h3>${p.title}</h3>
         <p><strong>Skill:</strong> ${p.skillLevel}</p>
         <p><strong>Yarn Size:</strong> ${p.yarnSize}</p>
         <p><strong>Skeins:</strong> ${p.skiensNeeded}</p>
+
         <pre>${p.instructions}</pre>
-        <button onclick="favorite('${p.patternId}')">Favorite</button>
       </div>
     `,
           )
           .join('');
       }
 
-      async function favorite(id) {
-        await fetch('/api/favorites/patterns/' + id, { method: 'POST' });
-        alert('Favorited!');
+      async function search() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        let filtered = allPatterns.filter((p) => p.title.toLowerCase().includes(q));
+        filtered = applyFilterValues(filtered);
+        render(filtered, userFavorites.patterns);
+      }
+
+      function applyFilters() {
+        let filtered = applyFilterValues(allPatterns);
+        render(filtered, userFavorites.patterns);
+      }
+
+      function applyFilterValues(list) {
+        const skill = document.getElementById('skillFilter').value;
+        const yarn = document.getElementById('yarnFilter').value;
+        const skeins = document.getElementById('skeinsFilter').value;
+
+        if (skill) list = list.filter((p) => p.skillLevel === skill);
+        if (yarn) list = list.filter((p) => String(p.yarnSize) === yarn);
+        if (skeins) list = list.filter((p) => String(p.skiensNeeded) === skeins);
+
+        return list;
+      }
+
+      async function toggleFavorite(type, id, el) {
+        const filled = el.classList.contains('heart-filled');
+
+        if (filled) {
+          await fetch(`/api/favorites/${type}/${id}`, { method: 'DELETE' });
+          el.classList.remove('heart-filled');
+          el.classList.add('heart-empty');
+          el.textContent = '♡';
+        } else {
+          await fetch(`/api/favorites/${type}/${id}`, { method: 'POST' });
+          el.classList.remove('heart-empty');
+          el.classList.add('heart-filled');
+          el.textContent = '♥';
+        }
       }
 
       load();

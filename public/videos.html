@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="style.css" />
     <script defer src="/components/navbar.js"></script>
   </head>
+
   <body>
     <div class="container">
       <h2>Video Tutorials</h2>
@@ -14,43 +15,121 @@
         <button onclick="search()">Search</button>
       </div>
 
+      <div class="filters">
+        <select id="skillFilter">
+          <option value="">Skill Level</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="pro">Pro</option>
+        </select>
+
+        <select id="yarnFilter">
+          <option value="">Yarn Size</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+
+        <select id="skeinsFilter">
+          <option value="">Skeins</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+
+        <button onclick="applyFilters()">Apply</button>
+      </div>
+
       <div id="grid" class="card-grid"></div>
     </div>
 
     <script>
+      let allVideos = [];
+      let userFavorites = { videos: [] };
+
+      async function loadFavorites() {
+        const me = await fetch('/api/users/me')
+          .then((r) => r.json())
+          .catch(() => null);
+        if (!me) return;
+        userFavorites.videos = me.favoriteVideoIds || [];
+      }
+
       async function load() {
+        await loadFavorites();
         const res = await fetch('/api/videos');
-        const videos = await res.json();
-        render(videos);
+        allVideos = await res.json();
+        render(allVideos, userFavorites.videos);
       }
 
-      async function search() {
-        const q = document.getElementById('searchInput').value;
-        const res = await fetch('/api/videos/search?q=' + encodeURIComponent(q));
-        render(await res.json());
-      }
-
-      function render(videos) {
+      function render(videos, favorites) {
         const grid = document.getElementById('grid');
+
         grid.innerHTML = videos
           .map(
             (v) => `
       <div class="card">
+        <button class="heart-btn ${favorites.includes(v.videoId) ? 'heart-filled' : 'heart-empty'}"
+          onclick="toggleFavorite('videos', '${v.videoId}', this)">
+          ${favorites.includes(v.videoId) ? '♥' : '♡'}
+        </button>
+
         <h3>${v.title}</h3>
         <p><strong>Skill:</strong> ${v.skillLevel}</p>
         <p><strong>Yarn Size:</strong> ${v.yarnSize}</p>
         <p><strong>Skeins:</strong> ${v.skiensNeeded}</p>
-        <a href="${v.videoUrl}" target="_blank">Watch</a><br><br>
-        <button onclick="favorite('${v.videoId}')">Favorite</button>
+
+        <a href="${v.videoUrl}" target="_blank">Watch</a>
       </div>
     `,
           )
           .join('');
       }
 
-      async function favorite(id) {
-        await fetch('/api/favorites/videos/' + id, { method: 'POST' });
-        alert('Favorited!');
+      async function search() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        let filtered = allVideos.filter((v) => v.title.toLowerCase().includes(q));
+        filtered = applyFilterValues(filtered);
+        render(filtered, userFavorites.videos);
+      }
+
+      function applyFilters() {
+        let filtered = applyFilterValues(allVideos);
+        render(filtered, userFavorites.videos);
+      }
+
+      function applyFilterValues(list) {
+        const skill = document.getElementById('skillFilter').value;
+        const yarn = document.getElementById('yarnFilter').value;
+        const skeins = document.getElementById('skeinsFilter').value;
+
+        if (skill) list = list.filter((v) => v.skillLevel === skill);
+        if (yarn) list = list.filter((v) => String(v.yarnSize) === yarn);
+        if (skeins) list = list.filter((v) => String(v.skiensNeeded) === skeins);
+
+        return list;
+      }
+
+      async function toggleFavorite(type, id, el) {
+        const filled = el.classList.contains('heart-filled');
+
+        if (filled) {
+          await fetch(`/api/favorites/${type}/${id}`, { method: 'DELETE' });
+          el.classList.remove('heart-filled');
+          el.classList.add('heart-empty');
+          el.textContent = '♡';
+        } else {
+          await fetch(`/api/favorites/${type}/${id}`, { method: 'POST' });
+          el.classList.remove('heart-empty');
+          el.classList.add('heart-filled');
+          el.textContent = '♥';
+        }
       }
 
       load();
