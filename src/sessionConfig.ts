@@ -6,8 +6,6 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 const PostgresStore = connectPgSimple(session);
 
-// Store sessions in PostgreSQL
-
 const pgPool = new Pool({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
@@ -24,16 +22,16 @@ const sessionStorage = new PostgresStore({
 
 const sessionMiddleware = session({
   store: sessionStorage,
-  secret: process.env.COOKIE_SECRET, // Signs cookie to prevent forgery
+  secret: process.env.COOKIE_SECRET,
   cookie: {
-    maxAge: 8 * 60 * 60 * 1000, // 8-hour session expiry
-    httpOnly: true, // No client-side JS access (XSS protection)
-    secure: isProduction, // HTTPS only in production
-    sameSite: 'lax', // Basic CSRF protection
+    maxAge: 8 * 60 * 60 * 1000,
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
   },
-  name: 'session', // Cookie name in the browser
-  resave: false, // Skip re-saving unmodified sessions
-  saveUninitialized: false, // Don't save empty sessions (no cookie until session is used)
+  name: 'session',
+  resave: false,
+  saveUninitialized: false,
 });
 
 export { sessionMiddleware };
