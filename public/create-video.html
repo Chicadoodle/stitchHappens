@@ -33,7 +33,10 @@
     <script>
       document.getElementById('form').onsubmit = async (e) => {
         e.preventDefault();
+
         const data = Object.fromEntries(new FormData(e.target));
+
+        console.log(data);
 
         const res = await fetch('/api/videos', {
           method: 'POST',
@@ -41,8 +44,12 @@
           body: JSON.stringify(data),
         });
 
+        const result = await res.json().catch(() => null);
+
+        console.dir(result, { depth: null });
+
         document.getElementById('msg').textContent =
-          res.status === 201 ? 'Video uploaded!' : 'Error uploading video.';
+          res.status === 201 ? 'Video uploaded!' : JSON.stringify(result, null, 2);
       };
     </script>
   </body>

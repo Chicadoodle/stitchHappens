@@ -76,20 +76,33 @@
             (p) => `
       <div class="card">
         <button class="heart-btn ${favorites.includes(p.patternId) ? 'heart-filled' : 'heart-empty'}"
-          onclick="toggleFavorite('patterns', '${p.patternId}', this)">
+          onclick="event.stopPropagation(); toggleFavorite('patterns', '${p.patternId}', this)">
           ${favorites.includes(p.patternId) ? '♥' : '♡'}
         </button>
 
-        <h3>${p.title}</h3>
-        <p><strong>Skill:</strong> ${p.skillLevel}</p>
-        <p><strong>Yarn Size:</strong> ${p.yarnSize}</p>
-        <p><strong>Skeins:</strong> ${p.skiensNeeded}</p>
+        <div class="card-media">
+          PATTERN
+        </div>
 
-        <pre>${p.instructions}</pre>
+        <div onclick="openPattern('${p.patternId}')" class="card-clickable">
+          <h3>${p.title}</h3>
+
+          <p><strong>Skill:</strong> ${p.skillLevel}</p>
+          <p><strong>Yarn Size:</strong> ${p.yarnSize}</p>
+          <p><strong>Skeins:</strong> ${p.skiensNeeded}</p>
+
+          <p class="preview-text">
+            ${p.instructions.substring(0, 120)}...
+          </p>
+        </div>
       </div>
     `,
           )
           .join('');
+      }
+
+      function openPattern(id) {
+        window.location.href = `/pattern.html?id=${id}`;
       }
 
       async function search() {

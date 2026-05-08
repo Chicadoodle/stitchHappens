@@ -8,9 +8,17 @@
   </head>
   <body>
     <div class="container">
-      <h2>Your Profile</h2>
-      <pre id="info">Loading...</pre>
-      <button id="logoutBtn">Logout</button>
+      <div class="profile-card">
+        <h2 id="username">Loading...</h2>
+
+        <p id="email"></p>
+
+        <div class="profile-actions">
+          <button onclick="location.href = 'favorites.html'">Favorites</button>
+
+          <button id="logoutBtn">Logout</button>
+        </div>
+      </div>
     </div>
 
     <script type="module">
@@ -18,9 +26,12 @@
 
       async function load() {
         const me = await api('/api/users/me');
-        document.getElementById('info').textContent = me
-          ? JSON.stringify(me, null, 2)
-          : 'Not logged in.';
+        if (!me) {
+          location.href = 'login.html';
+          return;
+        }
+        document.getElementById('username').textContent = me.userName;
+        document.getElementById('email').textContent = me.email;
       }
 
       load();

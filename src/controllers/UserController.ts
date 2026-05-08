@@ -5,6 +5,7 @@ import {
   addFavoriteVideo,
   addUser,
   getUserByEmail,
+  getUserById,
   removeFavoritePattern,
   removeFavoriteVideo,
 } from '../models/UserModel.js';
@@ -69,7 +70,21 @@ export async function getMe(req: Request, res: Response): Promise<void> {
     res.sendStatus(401);
     return;
   }
-  res.json(req.session.authenticatedUser);
+  const userId = req.session.authenticatedUser?.userId;
+
+  if (!userId) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const user = await getUserById(userId);
+
+  if (!user) {
+    res.sendStatus(404);
+    return;
+  }
+
+  res.json(user);
 }
 
 export async function favoriteVideo(req: Request, res: Response): Promise<void> {

@@ -13,7 +13,7 @@ const pgPool = new Pool({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
   user: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
+  password: process.env.DB_PASSWORD ?? '',
   database: process.env.DB_NAME,
   ssl: process.env.DB_SSL_MODE === 'require' ? { rejectUnauthorized: false } : false,
 });
@@ -25,7 +25,7 @@ const sessionStorage = new PostgresStore({
 
 const sessionMiddleware = session({
   store: sessionStorage,
-  secret: process.env.COOKIE_SECRET,
+  secret: process.env.COOKIE_SECRET as string,
   cookie: {
     maxAge: 8 * 60 * 60 * 1000,
     httpOnly: true,

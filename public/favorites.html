@@ -28,8 +28,8 @@
           return;
         }
 
-        renderVideos(me.favoriteVideoIds);
-        renderPatterns(me.favoritePatternIds);
+        renderVideos(me.favoriteVideoIds || []);
+        renderPatterns(me.favoritePatternIds || []);
       }
 
       async function renderVideos(ids) {

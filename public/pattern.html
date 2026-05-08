@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Pattern</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="/components/navbar.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <div id="patternContainer"></div>
+    </div>
+
+    <script>
+      async function loadPattern() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
+        const res = await fetch(`/api/patterns/${id}`);
+        const pattern = await res.json();
+
+        const me = await fetch('/api/users/me')
+          .then((r) => r.json())
+          .catch(() => null);
+
+        document.getElementById('patternContainer').innerHTML = `
+          <div class="detail-card">
+
+            <div class="detail-header">
+              <h1>${pattern.title}</h1>
+
+              <button class="heart-btn ${
+                me && me.favoritePatternIds && me.favoritePatternIds.includes(pattern.patternId)
+                  ? 'heart-filled'
+                  : 'heart-empty'
+              }"
+                onclick="toggleFavorite('${pattern.patternId}', this)">
+                ${
+                  me && me.favoritePatternIds && me.favoritePatternIds.includes(pattern.patternId)
+                    ? '♥'
+                    : '♡'
+                }
+              </button>
+            </div>
+
+            <div class="detail-meta">
+              <p><strong>Skill:</strong> ${pattern.skillLevel}</p>
+              <p><strong>Yarn Size:</strong> ${pattern.yarnSize}</p>
+              <p><strong>Skeins:</strong> ${pattern.skiensNeeded}</p>
+            </div>
+
+            <div class="instructions-box">
+              <pre>${pattern.instructions}</pre>
+            </div>
+
+          </div>
+        `;
+      }
+
+      async function toggleFavorite(id, el) {
+        const filled = el.classList.contains('heart-filled');
+
+        if (filled) {
+          await fetch(`/api/favorites/patterns/${id}`, {
+            method: 'DELETE',
+          });
+
+          el.classList.remove('heart-filled');
+          el.classList.add('heart-empty');
+          el.textContent = '♡';
+        } else {
+          await fetch(`/api/favorites/patterns/${id}`, {
+            method: 'POST',
+          });
+
+          el.classList.remove('heart-empty');
+          el.classList.add('heart-filled');
+          el.textContent = '♥';
+        }
+      }
+
+      loadPattern();
+    </script>
+  </body>
+</html>
