@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import connectPgSimple from 'connect-pg-simple';
 import session from 'express-session';
 import { Pool } from 'pg';
